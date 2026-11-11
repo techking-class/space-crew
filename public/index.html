@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>스페이스 크루 : 배신자를 찾아라</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- 입장 화면 -->
+  <section id="joinScreen" class="screen">
+    <div class="join-card">
+      <div class="hazard"></div>
+      <h1 class="title">스페이스 크루</h1>
+      <p id="joinSub" class="subtitle">우주선 안에 배신자가 숨어 있어요.<br>미션을 끝내거나, 배신자를 찾아내세요!</p>
+      <div id="studentJoin">
+        <label for="nameInput" class="field-label">이름</label>
+        <input id="nameInput" maxlength="10" placeholder="최대 10글자" autocomplete="off">
+        <button id="joinBtn" class="btn btn-main">탑승하기</button>
+      </div>
+      <div id="teacherJoin" class="hidden">
+        <button id="teacherBtn" class="btn btn-main">선생님으로 입장</button>
+      </div>
+      <p id="joinError" class="error"></p>
+    </div>
+  </section>
+
+  <!-- 대기실 -->
+  <section id="lobbyScreen" class="screen hidden">
+    <div class="lobby">
+      <header class="lobby-head">
+        <h2>대기실</h2>
+        <span id="lobbyCount" class="count-pill">0명</span>
+        <span id="teacherState" class="teacher-state"></span>
+      </header>
+
+      <div class="lobby-body">
+        <div class="panel">
+          <div id="colorWrap">
+            <h3>내 로봇 색깔</h3>
+            <div id="colorPicker" class="color-picker"></div>
+          </div>
+          <h3>탑승한 대원</h3>
+          <ul id="playerList" class="player-list"></ul>
+          <div id="kickedWrap" class="kicked-wrap hidden">
+            <h3>내보낸 학생</h3>
+            <ul id="kickedList" class="kicked-list"></ul>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div id="hostPanel" class="hidden">
+            <h3>게임 설정</h3>
+            <div class="settings">
+              <label>배신자 수
+                <select id="setImp">
+                  <option value="0">자동</option><option value="1">1명</option><option value="2">2명</option>
+                  <option value="3">3명</option><option value="4">4명</option><option value="5">5명</option><option value="6">6명</option>
+                </select>
+              </label>
+              <label>제거 대기시간
+                <select id="setKill"><option value="15">15초</option><option value="25">25초</option><option value="35">35초</option><option value="45">45초</option></select>
+              </label>
+              <label>토론 시간
+                <select id="setDiscuss"><option value="15">15초</option><option value="30">30초</option><option value="60">60초</option><option value="90">90초</option></select>
+              </label>
+              <label>투표 시간
+                <select id="setVote"><option value="30">30초</option><option value="45">45초</option><option value="60">60초</option></select>
+              </label>
+              <label>일반 미션 수
+                <select id="setTasks"><option value="3">3개</option><option value="4">4개</option><option value="5">5개</option><option value="6">6개</option><option value="7">7개</option></select>
+              </label>
+              <label>퀴즈 미션 수
+                <select id="setQuizN"><option value="0">0개</option><option value="1">1개</option><option value="2">2개</option><option value="3">3개</option></select>
+              </label>
+            </div>
+            <button id="startBtn" class="btn btn-main">게임 시작</button>
+            <button class="btn btn-ghost screen-open">📺 전자칠판 화면 열기</button>
+            <p class="hint">배신자 수를 자동으로 두면 30명일 때 5명이에요.</p>
+
+            <details class="quiz-edit">
+              <summary>퀴즈 문제 넣기 (<span id="quizCount">0</span>문제)</summary>
+              <p class="hint">한 줄에 한 문제씩: 문제 | 보기1 | 보기2 | 보기3 | 보기4 | 정답번호</p>
+              <textarea id="quizText" rows="7" placeholder="엔진의 4행정 중 첫 번째는? | 흡입 | 압축 | 폭발 | 배기 | 1&#10;물의 화학식은? | H2O | CO2 | O2 | 2"></textarea>
+              <button id="quizSave" class="btn btn-ghost">퀴즈 저장</button>
+            </details>
+          </div>
+          <div id="guestPanel">
+            <h3>준비 완료!</h3>
+            <p class="wait-text">선생님이 게임을 시작하면 바로 출발해요.</p>
+          </div>
+          <div class="howto">
+            <h3>조작법</h3>
+            <p>이동: 방향키 / WASD (태블릿은 왼쪽 조이스틱)</p>
+            <p>사용: E 또는 스페이스 · 신고: R · 제거: Q</p>
+            <p>배신자: 환풍구 V · 사보타주 F</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 게임 화면 -->
+  <section id="gameScreen" class="hidden">
+    <canvas id="cv"></canvas>
+
+    <div id="hudTop">
+      <div class="progress-wrap">
+        <span>전체 미션</span>
+        <div class="progress"><div id="progressFill"></div></div>
+      </div>
+      <div id="sabBanner" class="sab-banner hidden"></div>
+    </div>
+
+    <div id="taskPanel">
+      <button id="taskToggle" class="task-toggle">미션 ▾</button>
+      <div id="taskListWrap">
+        <div id="roleBadge" class="role-badge"></div>
+        <ul id="taskList"></ul>
+      </div>
+    </div>
+
+    <div id="miniWrap" class="mini-wrap">
+      <canvas id="mini" class="mini" aria-label="미니맵 (누르면 크게 보기)"></canvas>
+      <div class="mini-btns">
+        <button id="soundBtn" class="tiny-btn" aria-label="소리 켜기/끄기">🔊</button>
+        <button id="gfxBtn" class="tiny-btn">그래픽 높음</button>
+      </div>
+    </div>
+
+    <div id="ghostNotice" class="ghost-notice hidden">유령이 되었어요. 미션은 계속할 수 있어요!</div>
+
+    <div id="joy" class="joy hidden"><div id="joyKnob" class="joy-knob"></div></div>
+
+    <div id="actions">
+      <div class="act-col">
+        <button id="btnSab" class="act act-sab hidden">사보타주<span id="sabCd" class="cd"></span></button>
+        <button id="btnVent" class="act act-vent hidden">환풍구</button>
+      </div>
+      <button id="btnKill" class="act act-kill hidden">제거<span id="killCd" class="cd"></span></button>
+      <button id="btnReport" class="act act-report">신고</button>
+      <button id="btnUse" class="act act-use">사용</button>
+    </div>
+
+    <!-- 선생님 관전 패널 -->
+    <aside id="teacherPanel" class="teacher-panel hidden">
+      <div class="tp-head">
+        <strong>관전 모드</strong>
+        <button id="forceEndBtn" class="btn btn-danger">게임 강제 종료</button>
+      </div>
+      <button class="btn btn-ghost screen-open tp-screen">📺 전자칠판 화면 열기</button>
+      <div id="tpSummary" class="tp-summary"></div>
+      <ul id="tpList" class="tp-list"></ul>
+      <div id="tpKickedWrap" class="hidden">
+        <div class="tp-sub">내보낸 학생</div>
+        <ul id="tpKicked" class="kicked-list"></ul>
+      </div>
+    </aside>
+  </section>
+
+  <!-- 사보타주 메뉴 -->
+  <div id="sabMenu" class="overlay dim hidden">
+    <div class="task-box">
+      <button id="sabClose" class="task-close" aria-label="닫기">✕</button>
+      <div class="tg-title">사보타주</div>
+      <button id="sabLights" class="btn btn-main sab-big">💡 불 끄기</button>
+      <p class="hint">대원들의 시야가 아주 좁아져요. 전기실에서 고칠 때까지 계속돼요.</p>
+      <div class="tg-title small">🔒 문 잠그기 (12초)</div>
+      <div id="sabRooms" class="sab-rooms"></div>
+    </div>
+  </div>
+
+  <!-- 역할 공개 -->
+  <div id="roleReveal" class="overlay hidden">
+    <div class="reveal-inner">
+      <div id="revealTitle" class="reveal-title"></div>
+      <div id="revealSub" class="reveal-sub"></div>
+    </div>
+  </div>
+
+  <!-- 미니게임 -->
+  <div id="taskModal" class="overlay dim hidden">
+    <div class="task-box">
+      <button id="taskClose" class="task-close" aria-label="닫기">✕</button>
+      <div id="taskBody"></div>
+    </div>
+  </div>
+
+  <!-- 회의 -->
+  <div id="meeting" class="overlay dim hidden">
+    <div class="meeting-box">
+      <div class="m-head">
+        <div id="mTitle" class="m-title"></div>
+        <div id="mSub" class="m-sub"></div>
+        <div id="mTimer" class="m-timer"></div>
+      </div>
+      <div id="mResult" class="m-result hidden"></div>
+      <div id="mGrid" class="m-grid"></div>
+      <div class="m-actions">
+        <button id="mSkip" class="btn btn-ghost">건너뛰기</button>
+        <button id="mVote" class="btn btn-main">투표하기</button>
+      </div>
+      <div id="mStatus" class="m-status"></div>
+    </div>
+  </div>
+
+  <!-- 게임 끝 -->
+  <div id="endScreen" class="overlay hidden">
+    <div class="end-inner">
+      <div id="endTitle" class="end-title"></div>
+      <div id="endReason" class="end-reason"></div>
+      <div id="endImps" class="end-imps"></div>
+      <div id="endAwards" class="end-awards"></div>
+      <div class="stat-wrap"><table id="endStats" class="stat-table"></table></div>
+      <button id="lobbyBtn" class="btn btn-main hidden">대기실로 돌아가기</button>
+      <p id="endWait" class="wait-text">선생님이 다음 판을 준비하고 있어요.</p>
+    </div>
+  </div>
+
+  <!-- 회의 시작 연출 -->
+  <div id="splash" class="splash hidden"><div id="splashText" class="splash-text"></div></div>
+
+  <!-- 추방 연출 -->
+  <div id="ejectScene" class="eject-scene hidden">
+    <div class="eject-stars"></div>
+    <div id="ejectBot" class="eject-bot"></div>
+    <div id="ejectText" class="eject-text"></div>
+  </div>
+
+  <div id="flash" class="flash hidden"></div>
+  <div id="toast" class="toast hidden"></div>
+  <div id="netStatus" class="net hidden">서버에 다시 연결하는 중…</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/map.js"></script>
+  <script src="/sound.js"></script>
+  <script src="/gfx.js"></script>
+  <script src="/game.js"></script>
+</body>
+</html>

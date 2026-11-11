@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>스페이스 크루 · 전자칠판 화면</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    html, body { overflow: hidden; }
+    body {
+      background:
+        radial-gradient(circle at 15% 20%, rgba(90, 60, 160, .3), transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(30, 120, 170, .25), transparent 45%), #070912;
+    }
+    .sc { position: fixed; inset: 0; display: flex; flex-direction: column; padding: 2.2vh 3vw; gap: 2vh; }
+    .sc-head { display: flex; align-items: center; gap: 2vw; }
+    .sc-title { font-family: var(--display); font-size: 5vh; color: var(--signal); }
+    .sc-status { font-family: var(--display); font-size: 3vh; color: var(--muted); flex: 1; }
+    .sc-tools { display: flex; gap: 10px; }
+    .sc-main { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 2vh; }
+    .sc-lobby { display: grid; grid-template-columns: 2fr 3fr; gap: 3vw; flex: 1; min-height: 0; }
+    .join-box { background: var(--panel); border: 3px solid var(--steel); border-radius: 20px; padding: 3vh 2vw; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2vh; text-align: center; }
+    .join-box .lbl { font-family: var(--display); font-size: 3.4vh; color: var(--crew); }
+    .join-url { font-family: var(--display); font-size: 4.4vh; word-break: break-all; color: #fff; }
+    #qr { background: #fff; padding: 12px; border-radius: 12px; }
+    #qr img, #qr canvas { width: 30vh !important; height: 30vh !important; display: block; }
+    .big-count { font-family: var(--display); font-size: 6vh; color: var(--signal); }
+    .sc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15vw, 1fr)); gap: 1.2vh; align-content: start; overflow: hidden; }
+    .sc-chip { display: flex; align-items: center; gap: 1vw; background: var(--panel); border-radius: 12px; padding: 1vh 1vw; font-size: 2.6vh; border: 2px solid transparent; }
+    .sc-chip .mini-bot { width: 3.4vh; height: 3.4vh; margin-top: 1vh; }
+    .sc-chip .nm { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sc-chip.dead { opacity: .4; text-decoration: line-through; }
+    .sc-chip.voted { border-color: #3ee07a; }
+    .sc-chip .tag { font-size: 1.8vh; background: var(--steel); border-radius: 6px; padding: 2px 8px; }
+    .sc-chip .tag.v { background: #3ee07a; color: #10142a; }
+    .sc-chip .tag.c { background: var(--alert); color: #fff; }
+    .sc-progress { background: var(--panel); border: 3px solid var(--steel); border-radius: 20px; padding: 2.5vh 2vw; }
+    .sc-progress .lbl { font-family: var(--display); font-size: 3.4vh; display: flex; justify-content: space-between; margin-bottom: 1.4vh; }
+    .sc-bar { height: 5vh; background: var(--hull); border-radius: 3vh; overflow: hidden; }
+    .sc-bar div { height: 100%; width: 0; background: linear-gradient(90deg, #2fbf4a, #3ee07a); transition: width .5s; }
+    .sc-alert { font-family: var(--display); font-size: 4vh; text-align: center; padding: 1.6vh; border-radius: 16px; background: var(--alert); color: #fff; animation: blink 1.2s infinite; }
+    .sc-msg { font-family: var(--display); font-size: 3vh; color: var(--muted); text-align: center; }
+    .sc-meet-head { text-align: center; }
+    .sc-meet-head .t { font-family: var(--display); font-size: 7vh; color: var(--alert); }
+    .sc-meet-head .s { font-size: 3vh; color: var(--muted); }
+    .sc-meet-head .tm { font-family: var(--display); font-size: 5vh; color: var(--signal); margin-top: 1vh; }
+    .sc-result { font-family: var(--display); font-size: 4vh; text-align: center; background: var(--panel); border-radius: 16px; padding: 2vh; line-height: 1.5; }
+    .sc-end { text-align: center; overflow: auto; }
+    .sc-end .end-title { font-size: 10vh; }
+    .sc-end .end-reason { font-size: 3vh; }
+    .sc-end .award .aw-t { font-size: 2.6vh; } .sc-end .award .aw-n { font-size: 2.4vh; }
+    .sc-end .stat-table { font-size: 2.2vh; max-width: 1100px; margin: 0 auto; }
+    .sound-gate { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: rgba(5, 7, 18, .85); }
+    .sound-gate button { font-size: 4vh; padding: 2vh 4vw; }
+  </style>
+</head>
+<body>
+  <div class="sc">
+    <header class="sc-head">
+      <div class="sc-title">스페이스 크루</div>
+      <div id="scStatus" class="sc-status"></div>
+      <div class="sc-tools">
+        <button id="scSound" class="tiny-btn">🔊 소리</button>
+        <button id="scFull" class="tiny-btn">⛶ 전체 화면</button>
+      </div>
+    </header>
+
+    <main class="sc-main">
+      <section id="vLobby" class="sc-lobby">
+        <div class="join-box">
+          <div class="lbl">여기로 접속하세요</div>
+          <div id="qr"></div>
+          <div id="joinUrl" class="join-url"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2vh;min-height:0">
+          <div class="big-count"><span id="lCount">0</span>명 탑승</div>
+          <div id="lGrid" class="sc-grid"></div>
+        </div>
+      </section>
+
+      <section id="vPlay" class="sc-main hidden">
+        <div class="sc-progress">
+          <div class="lbl"><span>전체 미션 진행도</span><span id="pPct">0%</span></div>
+          <div class="sc-bar"><div id="pBar"></div></div>
+        </div>
+        <div id="pAlert" class="sc-alert hidden"></div>
+        <div class="sc-msg">우주선 어딘가에 배신자가 숨어 있어요… 회의에서 밝혀내세요!</div>
+        <div id="pGrid" class="sc-grid"></div>
+      </section>
+
+      <section id="vMeet" class="sc-main hidden">
+        <div class="sc-meet-head">
+          <div id="mT" class="t"></div>
+          <div id="mS" class="s"></div>
+          <div id="mTm" class="tm"></div>
+        </div>
+        <div id="mRes" class="sc-result hidden"></div>
+        <div id="mGrid2" class="sc-grid"></div>
+      </section>
+
+      <section id="vEnd" class="sc-end hidden">
+        <div id="eTitle" class="end-title"></div>
+        <div id="eReason" class="end-reason"></div>
+        <div id="eImps" class="end-imps"></div>
+        <div id="eAwards" class="end-awards"></div>
+        <table id="eStats" class="stat-table"></table>
+      </section>
+    </main>
+  </div>
+
+  <div id="splash" class="splash hidden"><div id="splashText" class="splash-text"></div></div>
+  <div id="ejectScene" class="eject-scene hidden">
+    <div class="eject-stars"></div>
+    <div id="ejectBot" class="eject-bot"></div>
+    <div id="ejectText" class="eject-text"></div>
+  </div>
+  <div id="soundGate" class="sound-gate"><button id="gateBtn" class="btn btn-main">🔊 소리 켜고 시작하기</button></div>
+  <div id="netStatus" class="net hidden">서버에 다시 연결하는 중…</div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/map.js"></script>
+  <script src="/sound.js"></script>
+  <script src="/screen.js"></script>
+</body>
+</html>

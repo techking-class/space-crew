@@ -1,0 +1,16 @@
+{
+  "name": "space-crew",
+  "version": "1.0.0",
+  "description": "스페이스 크루 : 배신자를 찾아라 - 학급 단체 추리 웹게임",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
