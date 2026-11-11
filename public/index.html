@@ -23,7 +23,9 @@
         <button id="joinBtn" class="btn btn-main">탑승하기</button>
       </div>
       <div id="teacherJoin" class="hidden">
-        <button id="teacherBtn" class="btn btn-main">선생님으로 입장</button>
+        <label for="hostPw" class="field-label">관리자 비밀번호</label>
+        <input id="hostPw" type="password" inputmode="numeric" maxlength="20" placeholder="비밀번호" autocomplete="off">
+        <button id="teacherBtn" class="btn btn-main">관리자로 입장</button>
       </div>
       <p id="joinError" class="error"></p>
     </div>
@@ -36,6 +38,7 @@
         <h2>대기실</h2>
         <span id="lobbyCount" class="count-pill">0명</span>
         <span id="teacherState" class="teacher-state"></span>
+        <button id="tvBtnLobby" class="btn btn-tv screen-open hidden">📺 TV 큰 화면 보기</button>
       </header>
 
       <div class="lobby-body">
@@ -79,7 +82,10 @@
               </label>
             </div>
             <button id="startBtn" class="btn btn-main">게임 시작</button>
-            <button class="btn btn-ghost screen-open">📺 전자칠판 화면 열기</button>
+            <div class="tv-box">
+              <div>📺 TV·전자칠판에서 직접 열 때 주소</div>
+              <div class="tv-addr"><b class="tv-url"></b><button class="tiny-btn tv-copy">복사</button></div>
+            </div>
             <p class="hint">배신자 수를 자동으로 두면 30명일 때 5명이에요.</p>
 
             <details class="quiz-edit">
@@ -152,7 +158,7 @@
         <strong>관전 모드</strong>
         <button id="forceEndBtn" class="btn btn-danger">게임 강제 종료</button>
       </div>
-      <button class="btn btn-ghost screen-open tp-screen">📺 전자칠판 화면 열기</button>
+      <button class="btn btn-tv screen-open tp-screen">📺 TV 큰 화면 보기</button>
       <div id="tpSummary" class="tp-summary"></div>
       <ul id="tpList" class="tp-list"></ul>
       <div id="tpKickedWrap" class="hidden">

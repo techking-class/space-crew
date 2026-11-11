@@ -11,10 +11,13 @@ const io = new Server(server, { pingInterval: 10000, pingTimeout: 20000 });
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/health', (req, res) => res.send('ok'));
+// 관리자(선생님) 페이지와 TV 큰 화면 주소
+app.get(['/host', '/host/'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get(['/tv', '/tv/'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'screen.html')));
 
 const PORT = process.env.PORT || 3000;
-const TEACHER_PASSWORD = process.env.TEACHER_PASSWORD || 'teacher1234';
-if (!process.env.TEACHER_PASSWORD) console.log('⚠️  TEACHER_PASSWORD 환경변수가 없어 기본 비밀번호(teacher1234)를 사용합니다.');
+// 관리자 비밀번호 (Render 환경변수 TEACHER_PASSWORD를 넣으면 그 값이 우선)
+const TEACHER_PASSWORD = process.env.TEACHER_PASSWORD || '2580';
 
 const MAX_PLAYERS = 40;
 const TICK_HZ = 12;

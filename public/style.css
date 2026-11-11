@@ -428,3 +428,12 @@ body.teacher .mini-wrap { display: none; }
 @keyframes fly { from { transform: translateX(0) rotate(0); } to { transform: translateX(calc(100vw + 240px)) rotate(900deg); } }
 .eject-text { position: absolute; left: 0; right: 0; top: 62%; text-align: center; font-family: var(--display); font-size: clamp(22px, 4.5vw, 40px); color: #fff; padding: 0 20px; min-height: 2em; }
 @media (prefers-reduced-motion: reduce) { .eject-scene.go .eject-bot, .eject-stars, .splash-text { animation: none; } }
+
+/* 관리자 페이지: TV 큰 화면 버튼 */
+.btn-tv { background: var(--crew); color: #10142a; box-shadow: 0 4px 0 #2a9bb3; font-size: 17px; padding: 10px 16px; }
+.lobby-head .btn-tv { margin-left: auto; }
+.tp-screen { width: 100%; margin: 0 0 10px; }
+.tv-box { margin-top: 10px; background: var(--hull); border-radius: 10px; padding: 10px; font-size: 14px; color: var(--muted); }
+.tv-addr { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.tv-addr b { color: var(--crew); font-size: 16px; word-break: break-all; user-select: text; }
+#hostPw { width: 100%; font-size: 22px; padding: 12px; border-radius: 10px; border: 2px solid var(--steel); background: var(--hull); color: var(--text); margin-bottom: 14px; letter-spacing: 6px; text-align: center; }

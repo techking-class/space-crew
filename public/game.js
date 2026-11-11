@@ -11,13 +11,9 @@
     sessionStorage.setItem('sc_token', token);
   }
 
-  // 선생님 주소: /?teacher=비밀번호 (주소창에서는 바로 지워서 화면에 안 보이게 함)
-  const params = new URLSearchParams(location.search);
-  if (params.get('teacher')) {
-    sessionStorage.setItem('sc_teacher', params.get('teacher'));
-    history.replaceState(null, '', location.pathname);
-  }
-  const teacherKey = sessionStorage.getItem('sc_teacher');
+  // 관리자(선생님) 페이지: /host 주소에서 비밀번호를 입력해 입장
+  const IS_HOST_PAGE = /^\/host\/?$/.test(location.pathname);
+  let teacherKey = IS_HOST_PAGE ? sessionStorage.getItem('sc_teacher') : null;
 
   const S = {
     joined: false, teacher: false, name: '', myPid: null, colors: [],
@@ -55,10 +51,11 @@
   const doorsNow = () => (S.sab && S.sab.type === 'doors' ? MAP.doorsFor(S.sab.room) : null);
 
   // ---------- 입장 ----------
-  if (teacherKey) {
+  if (IS_HOST_PAGE) {
     $('studentJoin').classList.add('hidden');
     $('teacherJoin').classList.remove('hidden');
-    $('joinSub').textContent = '선생님 관리·관전 화면으로 들어갑니다.';
+    $('joinSub').textContent = '관리자(선생님) 페이지예요. 비밀번호를 입력하세요.';
+    document.title = '스페이스 크루 · 관리자';
   }
   $('nameInput').value = localStorage.getItem('sc_name') || '';
   function doJoin() {
@@ -71,16 +68,26 @@
   }
   $('joinBtn').onclick = doJoin;
   $('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') doJoin(); });
-  $('teacherBtn').onclick = () => socket.emit('join', { token, teacherKey });
+  function hostJoin() {
+    const pw = $('hostPw').value.trim();
+    if (!pw) { $('joinError').textContent = '비밀번호를 입력해 주세요.'; return; }
+    teacherKey = pw;
+    sessionStorage.setItem('sc_teacher', pw);
+    $('joinError').textContent = '';
+    socket.emit('join', { token, teacherKey });
+  }
+  $('teacherBtn').onclick = hostJoin;
+  $('hostPw').addEventListener('keydown', e => { if (e.key === 'Enter') hostJoin(); });
 
   socket.on('connect', () => {
     $('netStatus').classList.add('hidden');
     if (S.joined) socket.emit('join', S.teacher ? { token, teacherKey } : { token, name: S.name });
+    else if (IS_HOST_PAGE && teacherKey) socket.emit('join', { token, teacherKey }); // 새로고침하면 자동 입장
   });
   socket.on('disconnect', () => { if (S.joined) $('netStatus').classList.remove('hidden'); });
   socket.on('errorMsg', msg => {
     $('joinError').textContent = msg;
-    if (msg.includes('비밀번호')) sessionStorage.removeItem('sc_teacher');
+    if (msg.includes('비밀번호')) { sessionStorage.removeItem('sc_teacher'); teacherKey = null; $('hostPw').value = ''; }
     S.joined = false;
     show('joinScreen');
   });
@@ -160,6 +167,7 @@
     }
 
     $('hostPanel').classList.toggle('hidden', !T);
+    $('tvBtnLobby').classList.toggle('hidden', !T);
     $('guestPanel').classList.toggle('hidden', T);
     if (T && S.settings) {
       $('setImp').value = S.settings.impostors;
@@ -186,7 +194,15 @@
     const b = e.target.closest('button[data-kid]');
     if (b) socket.emit('unkick', +b.dataset.kid);
   }));
-  document.querySelectorAll('.screen-open').forEach(b => { b.onclick = () => window.open('/screen.html', '_blank'); });
+  // TV 큰 화면: 새 창으로 열어 TV(전자칠판)로 옮기거나, TV 브라우저에서 주소를 직접 입력
+  document.querySelectorAll('.screen-open').forEach(b => { b.onclick = () => window.open('/tv', 'spacecrew_tv'); });
+  document.querySelectorAll('.tv-url').forEach(el => { el.textContent = location.host + '/tv'; });
+  document.querySelectorAll('.tv-copy').forEach(b => {
+    b.onclick = () => {
+      const url = location.origin + '/tv';
+      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => toast('TV 주소를 복사했어요.'), () => toast(url));
+    };
+  });
 
   function kick(pid) {
     if (confirm(`${nameOf(pid)}님을 게임에서 내보낼까요?`)) socket.emit('kick', pid);
